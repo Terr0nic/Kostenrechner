@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kostenübersicht Führerschein</title>
+
+<style>
+:root{
+  --accent:#1d4ed8;
+  --accent2:#2563eb;
+  --text:#0f172a;
+  --muted:#475569;
+  --line:rgba(15,23,42,.12);
+  --radius:16px;
+  --shadow:0 12px 34px rgba(15,23,42,.10);
+  --soft:rgba(29,78,216,.08);
+  --soft2:rgba(29,78,216,.04);
+  --chip:rgba(15,23,42,.06);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  background:#fff;
+  color:var(--text);
+  padding:28px;
+}
+
+.wrap{
+  max-width:1120px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1.35fr .85fr;
+  gap:16px;
+}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}}
+
+.card{
+  position:relative;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+/* Wasserzeichen */
+.card.watermark::before{
+  content:"Fahrschule Rakowski";
+  position:absolute;
+  right:-18px;
+  bottom:-10px;
+  font-weight:900;
+  font-size:34px;
+  letter-spacing:.6px;
+  color:rgba(15,23,42,.06);
+  transform:rotate(-10deg);
+  pointer-events:none;
+  user-select:none;
+  white-space:nowrap;
+}
+
+.title{
+  padding:16px 18px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, var(--soft), transparent);
+}
+.title h1{margin:0;font-size:18px}
+.sub{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.35}
+.inner{padding:18px;display:grid;gap:14px}
+
+.row,.toggle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:linear-gradient(180deg, var(--soft2), transparent);
+}
+.label{font-weight:900;font-size:13px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+.value{font-weight:950; font-variant-numeric: tabular-nums;}
+
+input[type=range]{ width:100%; accent-color: var(--accent2); }
+.mini{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+.switch{position:relative;width:46px;height:28px;flex:0 0 auto;}
+.switch input{display:none}
+.slider{
+  position:absolute;inset:0;
+  background:rgba(15,23,42,.14);
+  border-radius:999px;
+  border:1px solid rgba(15,23,42,.10);
+  transition:.2s;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:22px;height:22px;
+  background:#fff;
+  border-radius:50%;
+  top:2px;left:3px;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  transition:.2s;
+}
+.switch input:checked + .slider{
+  background:rgba(29,78,216,.26);
+  border-color: rgba(29,78,216,.35);
+}
+.switch input:checked + .slider:before{ transform:translateX(18px); }
+
+.panel{
+  padding:12px;
+  border:1px dashed rgba(15,23,42,.18);
+  border-radius:14px;
+  background:#fff;
+}
+
+.formGrid{display:grid;gap:10px;}
+.field{display:grid;gap:6px;}
+.field label{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:800;
+}
+.field input{
+  width:100%;
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px solid rgba(15,23,42,.14);
+  background:#fff;
+  color:var(--text);
+  font-weight:950;
+  font-variant-numeric: tabular-nums;
+  transition: box-shadow .15s, border-color .15s;
+}
+.field input:focus{
+  outline:none;
+  border-color: rgba(29,78,216,.55);
+  box-shadow: 0 0 0 4px rgba(29,78,216,.12);
+}
+
+.smallNote{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px dashed rgba(15,23,42,.18);
+  background: rgba(15,23,42,.02);
+  font-size:12px;
+  line-height:1.35;
+  color:var(--muted);
+}
+
+.dim{ opacity:.55; filter:grayscale(.15); }
+
+/* ===== Disclosure (Pfeil auf/zu) statt Schieber ===== */
+.disclosure{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:linear-gradient(180deg, var(--soft2), transparent);
+  cursor:pointer;
+  user-select:none;
+}
+.disclosureLeft .label{font-weight:900;font-size:13px}
+.disclosureLeft .hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+.chev{
+  width:36px;height:36px;
+  border-radius:12px;
+  border:1px solid rgba(15,23,42,.12);
+  background:#fff;
+  display:grid;
+  place-items:center;
+  font-weight:950;
+  color:rgba(15,23,42,.75);
+  transition:.15s;
+}
+.disclosure:hover .chev{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(15,23,42,.10); }
+.panelWrap[hidden]{ display:none; }
+
+/* Übersicht / Tabelle */
+.tableCard{
+  border:1px solid rgba(15,23,42,.10);
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.tHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  font-weight:950;
+  background:rgba(15,23,42,.04);
+  border-bottom:1px solid rgba(15,23,42,.08);
+}
+.badge{
+  font-size:11px;
+  font-weight:900;
+  color:rgba(15,23,42,.7);
+  background:var(--chip);
+  padding:6px 10px;
+  border-radius:999px;
+}
+.tRow{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:12px;
+  padding:10px 14px;
+  border-bottom:1px dashed rgba(15,23,42,.12);
+}
+.tRow:last-child{border-bottom:none}
+.tName{font-size:13px;color:rgba(15,23,42,.92)}
+.tVal{font-size:13px;font-weight:950;font-variant-numeric:tabular-nums}
+.tSub{
+  background:rgba(29,78,216,.05);
+}
+.tSub .tName{font-weight:900}
+.tSub .tVal{font-weight:980}
+
+.totalCard{
+  padding:14px;
+  border-radius:14px;
+  border:1px solid rgba(29,78,216,.30);
+  background:rgba(29,78,216,.07);
+}
+.totalBig{
+  font-size:28px;
+  font-weight:980;
+  font-variant-numeric:tabular-nums;
+}
+.totalHint{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.35}
+.totalCard.secondary{
+  border-color: rgba(15,23,42,.14);
+  background: rgba(15,23,42,.03);
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<!-- LINKS -->
+<section class="card watermark">
+  <div class="title">
+    <h1>Was kostet dein Führerschein?</h1>
+    <div class="sub">Transparente Kostenübersicht – unverbindlich & individuell anpassbar.</div>
+  </div>
+
+  <div class="inner">
+    <!-- Fahrstunden -->
+    <div class="row">
+      <div>
+        <div class="label">Ø-Übungsstunden (bundesweiter Durchschnitt)</div>
+        <div class="hint">Du kannst ab 4 Fahrstunden rechnen.</div>
+      </div>
+      <div class="value"><span id="hVal">23</span> Std.</div>
+    </div>
+
+    <input id="hours" type="range" min="4" max="60" step="1" value="23">
+    <div class="mini"><span>4</span><span>Ø 23</span><span>60</span></div>
+
+    <!-- 1) Kosten Fahrschule -->
+    <div class="toggle">
+      <div>
+        <div class="label">Kosten Fahrschule</div>
+        <div class="hint">Grundbetrag, Lern-App, Fahrstunden, Sonderfahrten, Prüfkosten Fahrschule</div>
+      </div>
+      <label class="switch">
+        <input id="toggleSchool" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Sonderfahrten an/aus -->
+    <div class="toggle">
+      <div>
+        <div class="label">Sonderfahrten</div>
+        <div class="hint">Überland, Autobahn & Beleuchtungsfahrt (12 Pflichtfahrten)</div>
+      </div>
+      <label class="switch">
+        <input id="toggleSpecial" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Fahrschule anpassen (Pfeil auf/zu) -->
+    <div class="disclosure" id="btnSchoolEdit" role="button" aria-expanded="true" tabindex="0">
+      <div class="disclosureLeft">
+        <div class="label">Kosten anpassen</div>
+        <div class="hint">Preise der Fahrschule individuell einstellen</div>
+      </div>
+      <div class="chev" id="chevSchool">▲</div>
+    </div>
+
+    <div class="panelWrap" id="wrapSchoolEdit">
+      <div id="schoolEditBox" class="panel">
+        <div class="formGrid">
+          <div class="field">
+            <label>Grundbetrag (€)</label>
+            <input id="pBase" type="number" step="0.01" value="350.00">
+          </div>
+
+          <div class="field">
+            <label>Lern-App (€)</label>
+            <input id="pApp" type="number" step="0.01" value="40.00">
+          </div>
+
+          <div class="field">
+            <label>Übungsstunde (€)</label>
+            <input id="pLesson" type="number" step="0.01" value="65.00">
+          </div>
+
+          <div class="field">
+            <label>Sonderfahrt (€)</label>
+            <input id="pSpecial" type="number" step="0.01" value="65.00">
+          </div>
+
+          <div class="field">
+            <label>Prüfkosten Fahrschule – Theorie (€)</label>
+            <input id="pST" type="number" step="0.01" value="70.01">
+          </div>
+
+          <div class="field">
+            <label>Prüfkosten Fahrschule – Praxis (€)</label>
+            <input id="pSP" type="number" step="0.01" value="163.17">
+          </div>
+        </div>
+
+        <div class="smallNote">
+          Hinweis: Die eingestellten Fahrschul-Preise sind als grobe Orientierung gedacht und bewegen sich ungefähr im regionalen Rahmen – tatsächliche Preise können je nach Fahrschule abweichen.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2) Kosten TÜV -->
+    <div class="toggle">
+      <div>
+        <div class="label">Kosten TÜV</div>
+        <div class="hint">Fix: Theorie 24,99 € + Praxis 129,83 €</div>
+      </div>
+      <label class="switch">
+        <input id="toggleTuv" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- 3) Zusatzkosten -->
+    <div class="toggle">
+      <div>
+        <div class="label">Zusatzkosten</div>
+        <div class="hint">Behörde / Erste Hilfe / Foto etc.</div>
+      </div>
+      <label class="switch">
+        <input id="toggleExtras" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Zusatzkosten anpassen (Pfeil auf/zu) -->
+    <div class="disclosure" id="btnExtrasEdit" role="button" aria-expanded="true" tabindex="0">
+      <div class="disclosureLeft">
+        <div class="label">Zusatzkosten anpassen</div>
+        <div class="hint">Beträge für externe / Behörden-Kosten ändern</div>
+      </div>
+      <div class="chev" id="chevExtras">▲</div>
+    </div>
+
+    <div class="panelWrap" id="wrapExtrasEdit">
+      <div id="extrasEditBox" class="panel">
+        <div class="formGrid">
+          <div class="field">
+            <label>Erste-Hilfe-Kurs (ca. €)</label>
+            <input id="xFirstAid" type="number" step="0.01" value="50.00">
+          </div>
+          <div class="field">
+            <label>Sehtest (ca. €)</label>
+            <input id="xEye" type="number" step="0.01" value="10.00">
+          </div>
+          <div class="field">
+            <label>Biometrische Fotos (ca. €)</label>
+            <input id="xPhoto" type="number" step="0.01" value="10.00">
+          </div>
+          <div class="field">
+            <label>Führerscheinantrag (Behörde) (ca. €)</label>
+            <input id="xApplication" type="number" step="0.01" value="45.90">
+          </div>
+          <div class="field">
+            <label>Sonstige Kosten (optional, ca. €)</label>
+            <input id="xOther" type="number" step="0.01" value="0.00">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RECHTS -->
+<section class="card watermark">
+  <div class="title">
+    <h1>Übersicht</h1>
+    <div class="sub">Fahrschule → TÜV → Gesamtsumme → Zusatzkosten.</div>
+  </div>
+
+  <div class="inner">
+
+    <!-- Fahrschule -->
+    <div class="tableCard" id="boxSchool">
+      <div class="tHead">
+        <span>Fahrschule</span>
+        <span class="badge" id="badgeHours">–</span>
+      </div>
+      <div id="tblSchool"></div>
+      <div class="tRow tSub">
+        <div class="tName">Zwischensumme Fahrschule</div>
+        <div class="tVal" id="sumSchool">–</div>
+      </div>
+    </div>
+
+    <!-- TÜV -->
+    <div class="tableCard" id="boxTuv">
+      <div class="tHead">
+        <span>TÜV</span>
+        <span class="badge">Theorie + Praxis</span>
+      </div>
+      <div id="tblTuv"></div>
+      <div class="tRow tSub">
+        <div class="tName">Zwischensumme TÜV</div>
+        <div class="tVal" id="sumTuv">–</div>
+      </div>
+    </div>
+
+    <!-- Gesamtsumme Führerschein -->
+    <div class="totalCard">
+      <div class="totalBig" id="sumDriver">–</div>
+      <div class="totalHint">Gesamtsumme Führerschein (Fahrschule + TÜV).</div>
+    </div>
+
+    <!-- Zusatzkosten -->
+    <div class="tableCard" id="boxExtras">
+      <div class="tHead">
+        <span>Zusatzkosten</span>
+        <span class="badge">ca.</span>
+      </div>
+      <div id="tblExtras"></div>
+      <div class="tRow tSub">
+        <div class="tName">Gesamtsumme Zusatzkosten</div>
+        <div class="tVal" id="sumExtras">–</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div>
+
+<script>
+(() => {
+  const el = (id) => document.getElementById(id);
+
+  const num = (v) => {
+    const x = Number(String(v ?? "").trim().replace(",", "."));
+    return Number.isFinite(x) ? x : 0;
+  };
+  const money = (x) => Math.round(Math.max(0, x) * 100) / 100;
+  const fmtEUR = (n) => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n);
+
+  // FIX TÜV
+  const TUV_THEORY = 24.99;
+  const TUV_PRACTICAL = 129.83;
+
+  // Sonderfahrten: 5 Überland, 4 Autobahn, 3 Beleuchtung
+  const SPECIAL_TOTAL = 12;
+
+  // UI
+  const hours = el("hours");
+  const hVal = el("hVal");
+
+  const toggleSchool = el("toggleSchool");
+  const toggleSpecial = el("toggleSpecial");
+  const toggleTuv = el("toggleTuv");
+  const toggleExtras = el("toggleExtras");
+
+  // Disclosure buttons + panels
+  const btnSchoolEdit = el("btnSchoolEdit");
+  const btnExtrasEdit = el("btnExtrasEdit");
+  const wrapSchoolEdit = el("wrapSchoolEdit");
+  const wrapExtrasEdit = el("wrapExtrasEdit");
+  const chevSchool = el("chevSchool");
+  const chevExtras = el("chevExtras");
+
+  let schoolOpen = true; // Standard offen
+  let extrasOpen = true; // Standard offen
+
+  function setOpen(){
+    wrapSchoolEdit.hidden = !schoolOpen;
+    wrapExtrasEdit.hidden = !extrasOpen;
+    chevSchool.textContent = schoolOpen ? "▲" : "▼";
+    chevExtras.textContent = extrasOpen ? "▲" : "▼";
+    btnSchoolEdit.setAttribute("aria-expanded", String(schoolOpen));
+    btnExtrasEdit.setAttribute("aria-expanded", String(extrasOpen));
+  }
+  function toggleSchoolPanel(){ schoolOpen = !schoolOpen; setOpen(); }
+  function toggleExtrasPanel(){ extrasOpen = !extrasOpen; setOpen(); }
+
+  btnSchoolEdit.addEventListener("click", toggleSchoolPanel);
+  btnExtrasEdit.addEventListener("click", toggleExtrasPanel);
+  btnSchoolEdit.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleSchoolPanel(); }});
+  btnExtrasEdit.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleExtrasPanel(); }});
+
+  // Inputs School
+  const pBase = el("pBase");
+  const pApp = el("pApp");
+  const pLesson = el("pLesson");
+  const pSpecial = el("pSpecial");
+  const pST = el("pST");
+  const pSP = el("pSP");
+
+  // Inputs Extras
+  const xFirstAid = el("xFirstAid");
+  const xEye = el("xEye");
+  const xPhoto = el("xPhoto");
+  const xApplication = el("xApplication");
+  const xOther = el("xOther");
+
+  // Output blocks
+  const badgeHours = el("badgeHours");
+
+  const tblSchool = el("tblSchool");
+  const sumSchool = el("sumSchool");
+
+  const tblTuv = el("tblTuv");
+  const sumTuv = el("sumTuv");
+
+  const sumDriver = el("sumDriver");
+
+  const tblExtras = el("tblExtras");
+  const sumExtras = el("sumExtras");
+
+  const boxSchool = el("boxSchool");
+  const boxTuv = el("boxTuv");
+  const boxExtras = el("boxExtras");
+
+  function rowHTML(name, value){
+    return `
+      <div class="tRow">
+        <div class="tName">${name}</div>
+        <div class="tVal">${fmtEUR(value)}</div>
+      </div>
+    `;
+  }
+
+  function calc(){
+    const h = Number(hours.value);
+    hVal.textContent = h;
+    badgeHours.textContent = `${h} Std.`;
+
+    // --- Fahrschule ---
+    const base = money(num(pBase.value));
+    const app = money(num(pApp.value));
+    const lesson = money(num(pLesson.value));
+    const specialUnit = money(num(pSpecial.value));
+    const schoolTheory = money(num(pST.value));
+    const schoolPractical = money(num(pSP.value));
+
+    const lessonsSum = money(lesson * h);
+
+    const specialSum = (toggleSchool.checked && toggleSpecial.checked)
+      ? money(specialUnit * SPECIAL_TOTAL)
+      : 0;
+
+    const schoolTotalRaw = money(base + app + lessonsSum + specialSum + schoolTheory + schoolPractical);
+    const schoolTotal = toggleSchool.checked ? schoolTotalRaw : 0;
+
+    tblSchool.innerHTML = [
+      rowHTML("Grundbetrag (€)", toggleSchool.checked ? base : 0),
+      rowHTML("Lern-App (€)", toggleSchool.checked ? app : 0),
+      rowHTML(`Übungsstunde (€) – ${h} × ${fmtEUR(lesson)}`, toggleSchool.checked ? lessonsSum : 0),
+      rowHTML(`Sonderfahrt (€) – ${SPECIAL_TOTAL} × ${fmtEUR(specialUnit)}`, (toggleSchool.checked && toggleSpecial.checked) ? specialSum : 0),
+      rowHTML("Prüfkosten Fahrschule – Theorie (€)", toggleSchool.checked ? schoolTheory : 0),
+      rowHTML("Prüfkosten Fahrschule – Praxis (€)", toggleSchool.checked ? schoolPractical : 0),
+    ].join("");
+    sumSchool.textContent = fmtEUR(schoolTotal);
+
+    // --- TÜV ---
+    const tuvTotalRaw = money(TUV_THEORY + TUV_PRACTICAL);
+    const tuvTotal = toggleTuv.checked ? tuvTotalRaw : 0;
+
+    tblTuv.innerHTML = [
+      rowHTML("TÜV – Theorie (€)", toggleTuv.checked ? TUV_THEORY : 0),
+      rowHTML("TÜV – Praxis (€)", toggleTuv.checked ? TUV_PRACTICAL : 0),
+    ].join("");
+    sumTuv.textContent = fmtEUR(tuvTotal);
+
+    // --- Gesamtsumme Führerschein ---
+    const driverTotal = money(schoolTotal + tuvTotal);
+    sumDriver.textContent = `ca. ${fmtEUR(driverTotal)}`;
+
+    // --- Zusatzkosten ---
+    const firstAid = money(num(xFirstAid.value));
+    const eye = money(num(xEye.value));
+    const photo = money(num(xPhoto.value));
+    const application = money(num(xApplication.value));
+    const other = money(num(xOther.value));
+
+    const extrasTotalRaw = money(firstAid + eye + photo + application + other);
+    const extrasTotal = toggleExtras.checked ? extrasTotalRaw : 0;
+
+    tblExtras.innerHTML = [
+      rowHTML("Erste-Hilfe-Kurs (€)", toggleExtras.checked ? firstAid : 0),
+      rowHTML("Sehtest (€)", toggleExtras.checked ? eye : 0),
+      rowHTML("Biometrische Fotos (€)", toggleExtras.checked ? photo : 0),
+      rowHTML("Führerscheinantrag (Behörde) (€)", toggleExtras.checked ? application : 0),
+      rowHTML("Sonstige Kosten (€)", toggleExtras.checked ? other : 0),
+    ].join("");
+    sumExtras.textContent = fmtEUR(extrasTotal);
+
+    // Dim states
+    wrapSchoolEdit.classList.toggle("dim", !toggleSchool.checked);
+    wrapExtrasEdit.classList.toggle("dim", !toggleExtras.checked);
+
+    boxSchool.classList.toggle("dim", !toggleSchool.checked);
+    boxTuv.classList.toggle("dim", !toggleTuv.checked);
+    boxExtras.classList.toggle("dim", !toggleExtras.checked);
+  }
+
+  document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", calc);
+    i.addEventListener("change", calc);
+  });
+
+  setOpen();
+  calc();
+})();
+</script>
+
+</body>
+</html>
